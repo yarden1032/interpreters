@@ -1,0 +1,132 @@
+(define empty?
+  (lambda(lst)
+    (eq? lst '())))
+
+(define append 
+  (lambda (lst1 lst2)
+    (if (empty? lst1)
+        lst2
+        (cons (car lst1) (append (cdr lst1) lst2)))))
+
+(define reverse 
+  (lambda (lst)
+    (reverse-helper lst '())))
+  
+(define reverse-helper
+  (lambda (lst acc)
+    (if (empty? lst)
+        acc
+        (reverse-helper (cdr lst) (cons (car lst) acc)))))
+
+(define duplicate-items (lambda (lst dup-count)
+    (duplicate-items-helper lst dup-count dup-count)))
+
+(define duplicate-single-item 
+  (lambda (item n)
+    (if (= n 0)
+        '()
+        (cons item (duplicate-single-item item (- n 1))))))
+
+(define duplicate-items-helper
+  (lambda (lst cur-dup-count original-dup-count)
+    (if (empty? cur-dup-count) 
+        (duplicate-items-helper lst original-dup-count original-dup-count)
+        (if (empty? lst) 
+            '()
+            (append (duplicate-single-item  (car lst) (car cur-dup-count))
+                    (duplicate-items-helper (cdr lst) (cdr cur-dup-count) original-dup-count))))))
+
+(define payment-helper 
+  (lambda (n coins-lst unique-coins-lst non-unique-coins-list coins-used)
+    (if (= n 0 )
+        (if (is-legal-coins-payment unique-coins-lst non-unique-coins-list coins-used) 1 0)
+        (if (< n 0) 
+            0
+            (if (empty? coins-lst) 
+                0
+                (+ (payment-helper (- n (car coins-lst))
+                                    coins-lst
+                                    unique-coins-lst
+                                    non-unique-coins-list
+                                    (append coins-used (list (car coins-lst))))
+                    (payment-helper n
+                                    (cdr coins-lst)
+                                    unique-coins-lst
+                                    non-unique-coins-list
+                                    coins-used
+                                    )))))))
+
+(define count-apperance (lambda (x lst)
+                          (if (empty? lst)0
+                              (if (= (car lst) x)
+                                  (+ 1 (count-apperance x (cdr lst)))
+                                  (count-apperance x (cdr lst))))))
+
+(define is-legal-coins-payment (lambda (unique-coins-lst non-unique-coins-list coins-used)
+                                 (is-legal-coins-payment-helper
+                                  (map (lambda (x) (cons x (count-apperance x non-unique-coins-list))) unique-coins-lst)
+                                  (map (lambda (x) (cons x (count-apperance x coins-used))) unique-coins-lst)
+                                  )))
+(define caar
+  (lambda (lst)
+    (car (car lst))))
+(define cdar (lambda (lst)
+               (cdr(car lst))))
+(define alist-get
+  (lambda (alist key null-value)
+    (if (empty? alist)
+        null-value
+        (if (eq? (caar alist) key)
+            (cdar alist)
+            (alist-get (cdr alist) key null-value)))))
+
+(define le (lambda (x y) (or (= x y) (< x y))))
+
+(define is-legal-coins-payment-helper (lambda(asoc-limit asoc-used)
+                                        (foldl (lambda (item legal?)
+                                                 (and legal?
+                                                      (le (cdr item)
+                                                         (alist-get asoc-limit (car item)0))))
+                                               #t
+                                               asoc-used)))
+
+
+(define filter (lambda (pred lst)
+                 (if (empty? lst)
+                     lst
+                     (if (pred (car lst))
+                         (cons (car lst) (filter pred (cdr lst)))
+                         (filter pred (cdr lst))))))
+(define map (lambda (f lst)
+              (if (empty? lst)
+                  lst
+                  (cons (f (car lst)) (map f (cdr lst))))))
+
+(define foldl (lambda (f init lst)
+                (if (empty? lst)
+                    init
+                    (foldl
+                     f
+                     (f (car lst) init)
+                     (cdr lst)))))
+
+
+(define remove-dups (lambda(lst)
+  (if (empty? lst)
+      lst
+      (cons (car lst) (remove-dups (filter
+                                    (lambda (x) (not (eq? x (car lst)))) 
+                                    (cdr lst)))))))
+
+
+(define payment (lambda (n coins)
+                  (payment-helper n (remove-dups coins) (remove-dups coins) coins '())))            
+                               
+(define  compose-n (lambda( f n)
+                     (lambda(x)
+                       (compose-n-helper f n x))))
+
+(define compose-n-helper (lambda (f n x)
+                           (if (= n 0)x
+                               (compose-n-helper f (- n 1) (f x)))))
+
